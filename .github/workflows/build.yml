@@ -1,0 +1,31 @@
+name: Build zgrab2
+
+on:
+  workflow_dispatch:  # 允许手动运行
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Build
+        run: |
+          go build -o zgrab2 .
+      - name: Archive (Unix)
+        if: runner.os != 'Windows'
+        run: tar -czf zgrab2-${{ runner.os }}.tar.gz zgrab2
+      - name: Archive (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path zgrab2.exe -DestinationPath zgrab2-Windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zgrab2-${{ runner.os }}
+          path: |
+            zgrab2*.tar.gz
+            zgrab2*.zip
